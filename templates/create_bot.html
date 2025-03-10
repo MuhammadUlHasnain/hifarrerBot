@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Bot{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/create_bot.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="create-bot-container">
+    <h2>Create New Bot</h2>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <!-- Exchange Selection -->
+    <div class="exchange-selection">
+        <h3>Select Exchange</h3>
+        <div class="exchange-list">
+            <button class="exchange-btn" data-exchange="binance US">
+                <img src="{% static 'images/binance.svg' %}" alt="Binance US">
+            </button>
+            <button class="exchange-btn" data-exchange="coinbase">
+                <img src="{% static 'images/coinbase.png' %}" alt="Coinbase">
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden input field to store selected exchange -->
+    <input type="hidden" id="selected-exchange" value="">
+
+    <!-- API Credentials -->
+    <div class="api-credentials">
+        <h3>Validate API Credentials</h3>
+        <input type="text" id="api-key" placeholder="API Key">
+        <textarea id="private-key" placeholder="Private Key" rows="5"></textarea>
+        <button id="validate-btn">Validate</button>
+    </div>
+</div>
+
+<!-- Load CSS and JavaScript -->
+<link rel="stylesheet" href="{% static 'css/create_bot.css' %}">
+<script src="{% static 'js/create_bot.js' %}"></script>
+
+{% endblock %}

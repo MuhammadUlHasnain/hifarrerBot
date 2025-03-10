@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/signup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="signup-container">
+    <!-- Right Panel -->
+    <div class="right-panel">
+        <div class="signup-box">
+            <h2>Create new Account</h2>
+            <form id="signupForm" method="POST" action="{% url 'signup' %}">
+                {% csrf_token %}
+
+                <div class="messages">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="input-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" class="form-input" required>
+                </div>
+
+{#                <div class="input-group">#}
+{#                    <label for="last_name">Last Name</label>#}
+{#                    <input type="text" id="last_name" name="last_name" class="form-input" required>#}
+{#                </div>#}
+
+{#                <div class="input-group">#}
+{#                    <label for="username">Username</label>#}
+{#                    <input type="text" id="username" name="username" class="form-input" required>#}
+{#                </div>#}
+
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-input" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="password" name="password" class="form-input" required>
+                        <button type="button" class="toggle-password">
+                            <img src="{% static 'images/eye.svg' %}" alt="Toggle password">
+                        </button>
+                    </div>
+                </div>
+            
+                <div class="input-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <div class="password-container">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-input" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="signup-button">
+                    <span>Create new account</span>
+                    <img src="{% static 'images/arrow-right.svg' %}" alt="→">
+                </button>
+
+                <div class="divider">
+                    <span>or signup with</span>
+                </div>
+
+                <div class="social-login">
+                    <button type="button" class="social-button">
+                        <img src="{% static 'images/google.svg' %}" alt="Google">
+                    </button>
+                    <button type="button" class="social-button">
+                        <img src="{% static 'images/apple.svg' %}" alt="Apple">
+                    </button>
+                </div>
+
+                <p class="login-link">
+                    Have an account? <a href="{% url 'login' %}">Login</a>
+                </p>
+            {%  block toggle_js %}
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Password visibility toggle
+                    const passwordInput = document.getElementById('password');
+                    const togglePasswordButton = document.querySelector('.toggle-password');
+                    const confirmPasswordInput = document.getElementById('confirm_password');
+
+                    if (togglePasswordButton) {
+                        togglePasswordButton.addEventListener('click', function () {
+                            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                            passwordInput.setAttribute('type', type);
+
+                            // Update eye icon (optional)
+                            const eyeIcon = this.querySelector('img');
+                            if (type === 'password') {
+                                eyeIcon.style.opacity = '1';
+                            } else {
+                                eyeIcon.style.opacity = '0.7';
+                            }
+
+                            confirmPasswordInput.setAttribute('type', type);
+                        });
+                    }
+                })
+                </script>
+                {% endblock %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Left Panel -->
+    <div class="left-panel">
+        <div class="welcome-text">
+            <h1>Welcome to</h1>
+            <h2 class="brand">Pro Bot</h2>
+            <p class="description">
+                Your journey to smarter cryptocurrency trading starts here.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+     // Form submission
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('signupForm');
+        if (form) {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault(); // Prevent the default form submission
+
+                const formData = new FormData(this);
+
+                try {
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                        },
+                    });
+
+                    const data = await response.json();
+                    console.log('Response:', data); // Debug log
+                    const messages = document.querySelector('.messages');
+
+                    if (data.success) {
+                        // Redirect to the login page
+                        window.location.href = data.redirect_url;
+                    } else {
+                        if (messages) {
+                            messages.innerHTML = '';
+                        }
+                        // Display error messages
+                        if (data.error) {
+                            if (messages) {
+                                messages.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                            }
+                        }
+                    }
+                }
+                catch (error) {
+                    console.error('Error:', error);
+                    const messages = document.querySelector('.messages');
+                    if (messages) {
+                        messages.innerHTML = `<div class="alert alert-danger">An error occurred. Please try again.</div>`;
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

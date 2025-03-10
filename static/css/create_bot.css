@@ -1,0 +1,179 @@
+.create-bot-container {
+    text-align: center;
+    padding: 30px;
+    max-width: 800px; /* Set max width */
+    margin: 0 auto; /* Center container */
+}
+
+.exchange-selection, .api-credentials {
+    background: #f8f9fa; /* Light background for visibility */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px; /* Space between sections */
+    width: 100%;
+    max-width: 600px; /* Set max width for sections */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.exchange-list {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap; /* Allows wrapping on small screens */
+
+}
+
+.exchange-btn {
+    background: white;
+    border: 2px solid #ccc;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px; /* Increased button size */
+    height: 120px; /* Increased button size */
+    border-radius: 12px;
+}
+
+.exchange-btn img {
+    width: 100px; /* Adjust image size */
+    height: 100px;
+    object-fit: contain;
+}
+
+.exchange-btn.active {
+    opacity: 1;
+    border: 2px solid #4caf50;
+    border-radius: 10px;
+}
+
+.api-credentials {
+    margin-top: 20px;
+}
+
+.api-credentials input {
+    display: block;
+    width: 80%;
+    max-width: 300px;
+    margin: 10px auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#validate-btn {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#validate-btn:hover {
+    background-color: #45a049;
+}
+
+.create-bot-container {
+    text-align: center;
+    padding: 20px;
+}
+
+.exchange-selection h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.exchange-list {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.exchange-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px; /* Fixed button size */
+    height: 100px; /* Fixed button size */
+    border-radius: 10px;
+}
+
+.exchange-btn img {
+    width: 80px;  /* Set fixed width */
+    height: 80px; /* Set fixed height */
+    object-fit: contain; /* Ensures images scale properly */
+}
+
+.exchange-btn.active {
+    opacity: 1;
+    border: 2px solid #4caf50;
+    border-radius: 10px;
+}
+
+.api-credentials {
+    margin-top: 20px;
+}
+
+.api-credentials input, .api-credentials textarea {
+    width: 90%; /* Make inputs wider */
+    max-width: 500px;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+#validate-btn {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 150px;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+#validate-btn:hover {
+    background-color: #45a049;
+}
+
+.exchange-btn:hover {
+    opacity: 1;
+    border-color: #4caf50;
+}
+
+.messages {
+    list-style: none;
+    padding: 10px;
+    text-align: center;
+}
+
+.messages li {
+    padding: 10px;
+    margin: 5px auto;
+    width: 50%;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.messages .error {
+    background-color: #ffcccc;
+    color: #cc0000;
+}
+
+.messages .success {
+    background-color: #ccffcc;
+    color: #006600;
+}

@@ -1,0 +1,84 @@
+/* Base Template Styles */
+:root {
+    --primary-color: #6B46C1;
+    --secondary-color: #ffffff;
+    --text-color: #333333;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Navigation Styles */
+.navbar {
+    background-color: var(--secondary-color);
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    height: 40px;
+}
+
+.logo img {
+    height: 100%;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-item {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-item:hover {
+    color: white;
+    text-decoration-color: white;
+}
+
+.nav-item.active,
+.nav-item:active {
+    color: white !important;
+}
+
+.nav-background {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 70%;
+    height: 100%;
+    background-color: var(--primary-color);
+    border-bottom-left-radius: 50px;
+    z-index: -1;
+}
+
+main {
+    margin-top: 80px; /* To account for fixed navbar */
+    min-height: calc(100vh - 80px);
+}
+
+footer {
+    background-color: var(--text-color);
+    color: var(--secondary-color);
+    padding: 2rem 0;
+}

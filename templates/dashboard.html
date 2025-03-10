@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Active Bots</h1>
+        <a href="{% url 'bot:bot_setup' %}" class="create-bot-btn">
+            <i class="fas fa-plus"></i> Edit Bot
+        </a>
+    </div>
+
+    <div class="bots-table-container">
+        <div class="responsive-table">
+            <table class="bots-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Trading Pair</th>
+            <th>Exchange</th>
+            <th>Status</th>
+            <th>URL</th>
+            <th class="actions-column">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bot in bots %}
+        <tr>
+            <td class="bot-name">{{ bot.name|default:"Unnamed Bot" }}</td>
+            <td class="trading-pair">{{ bot.trading_pair|default:"--" }}</td>
+            <td>
+                            <div class="exchange-info">
+                                <div class="exchange-icon">
+                                    {% if exchange %}
+                                        {% if 'coinbase' in exchange|lower %}
+                                            <img src="{% static 'images/coinbase.png' %}" alt="Coinbase">
+                                        {% elif 'binanceus' in exchange|lower %}
+                                            <img src="{% static 'images/binance.svg' %}" alt="Binance">
+                                        {% else %}
+                                            <div class="generic-exchange-icon">{{ exchange|first|default:"?" }}</div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="generic-exchange-icon">?</div>
+                                    {% endif %}
+                                </div>
+                                <div class="exchange-name">
+                                    {{ exchange|default:"Unknown Exchange" }} 
+                                    {% if bot.organization_id %}
+                                        <span class="organization-id">(organizations/{{ bot.organization_id|slice:":6" }}...)</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+            <td>
+                <div class="status-badge {% if bot.is_active %}active{% else %}inactive{% endif %}">
+                    {% if bot.is_active %}Active{% else %}Inactive{% endif %}
+                </div>
+            </td>
+            <td class="webhook-info">
+                {% if bot.webhook_url %}
+                    <div class="webhook-url" title="{{ bot.webhook_url }}">
+                        {{ bot.webhook_url }}
+                    </div>
+                {% else %}
+                    <div class="no-webhook">Not Set</div>
+                {% endif %}
+            </td>
+            <td class="actions-cell">
+                <div class="actions-menu">
+                    <a href="{% url 'bot:bot_setup' %}?bot_id={{ bot.id }}" class="edit-bot-btn">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="no-bots-message">
+                You don't have any active bots yet. Click "Create Bot" to get started.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

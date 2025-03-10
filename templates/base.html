@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Crypto Trading Platform{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
+    <!-- Add any additional CSS frameworks if needed -->
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+{#                <a href="{% url 'home' %}">#}
+{#                    <img src="{% static 'images/logo.png' %}" alt="Logo">#}
+{#                </a>#}
+            </div>
+            <div class="nav-background"></div>
+            <div class="nav-links">
+{#                <a href="{% url 'home' %}" class="nav-item">Home</a>#}
+{#                <a href="{% url 'api/market' %}" class="nav-item">Market</a>#}
+{#                <a href="{% url 'trade' %}" class="nav-item">Trade</a>#}
+{#                <a href="{% url 'profile' %}" class="nav-item">Profile</a>#}
+                {% if user.is_authenticated %}
+                    <a href="{% url 'bot:dashboard' %}" class="nav-item">Dashboard</a>
+                    <a href="{% url 'bot:logout' %}" class="nav-item auth-private">Logout</a>
+                {% else %}
+                    <a href="{% url 'bot:signup' %}" class="nav-item auth-public">Signup</a>
+                    <a href="{% url 'bot:login' %}" class="nav-item auth-public">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        {% block footer %}
+        {% endblock %}
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{% static 'js/base.js' %}"></script>
+</body>
+</html>

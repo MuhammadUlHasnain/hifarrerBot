@@ -1,0 +1,316 @@
+/* Dashboard Styles */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.dashboard-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.create-bot-btn {
+    background-color: #6d28d9;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.create-bot-btn:hover {
+    background-color: #5b21b6;
+}
+
+/* Table Styles */
+.bots-table-container {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.responsive-table {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.bots-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.bots-table thead {
+    background-color: #f9fafb;
+}
+
+.bots-table th {
+    text-align: left;
+    padding: 14px 20px;
+    font-weight: 500;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.bots-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.bots-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.bots-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.actions-column {
+    width: 60px;
+}
+
+/* Exchange Column */
+.exchange-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.exchange-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.exchange-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.generic-exchange-icon {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    text-transform: uppercase;
+}
+
+.exchange-name {
+    display: flex;
+    flex-direction: column;
+}
+
+.organization-id {
+    color: #9ca3af;
+    font-size: 0.85em;
+    margin-top: 2px;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+    width: fit-content;
+}
+
+.status-badge.active {
+    background-color: #ecfdf5;
+    color: #10b981;
+}
+
+.status-badge.inactive {
+    background-color: #fef2f2;
+    color: #ef4444;
+}
+
+/* Actions Menu */
+.actions-cell {
+    text-align: right;
+}
+
+.actions-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.action-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+}
+
+.action-button:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    min-width: 140px;
+    z-index: 10;
+    display: none;
+    overflow: hidden;
+    margin-top: 4px;
+    border: 1px solid #e5e7eb;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 10px 16px;
+    text-decoration: none;
+    color: #374151;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f3f4f6;
+}
+
+.dropdown-menu a.delete-bot {
+    color: #ef4444;
+}
+
+.no-bots-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.bot-name {
+    font-weight: 500;
+    color: #111827;
+}
+
+.trading-pair {
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 16px;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .bots-table th,
+    .bots-table td {
+        padding: 12px 16px;
+    }
+
+    .exchange-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .exchange-name {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 576px) {
+    .bots-table thead {
+        display: none;
+    }
+
+    .bots-table,
+    .bots-table tbody,
+    .bots-table tr,
+    .bots-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .bots-table tr {
+        margin-bottom: 16px;
+        border-bottom: 2px solid #e5e7eb;
+        position: relative;
+    }
+
+    .bots-table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .bots-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 16px;
+        width: 45%;
+        text-align: left;
+        font-weight: 500;
+        color: #6b7280;
+    }
+
+    .actions-cell {
+        text-align: center;
+        padding: 12px;
+    }
+
+    .dropdown-menu {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+    }
+}
