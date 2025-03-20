@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator
 import uuid
-
+import json
 
 
 class TradingUserManager(BaseUserManager):
@@ -13,6 +13,7 @@ class TradingUserManager(BaseUserManager):
             raise ValueError('Email is required')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
+        extra_fields.setdefault('account_status', 'active')
         user.set_password(password)
         user.save()
         return user
@@ -32,10 +33,11 @@ class TradingUser(AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     two_factor_enabled = models.BooleanField(default=False)
 
-    # Trading API Connections
     class ExchangeChoices(models.TextChoices):
-        COINBASE = 'coinbase', _('Coinbase')
-        BINANCE_US = 'binanceus', _('Binance US')
+        COINBASE = 'coinbase', 'Coinbase'
+        BINANCE_US = 'binanceus', 'Binance US'
+    # Trading API Connections
+    # ExchangeChoices =[('coinbase','Coinbase'), ('binanceus', 'Binance US')]
 
     preferred_exchange = models.CharField(
         max_length=30,
@@ -53,7 +55,7 @@ class TradingUser(AbstractUser):
     default_trade_size_usd = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=100.00,
+        default=0.00,
         validators=[MinValueValidator(0)]
     )
 
@@ -75,7 +77,7 @@ class TradingUser(AbstractUser):
             ('suspended', 'Suspended'),
             ('demo', 'Demo Mode')
         ],
-        default='demo'
+        default='active'
     )
 
     # Tracking
@@ -110,16 +112,19 @@ class TradingBot(models.Model):
 
     # Strategy Parameters
     webhook_message = models.JSONField(blank=True)
-    webhook_url = models.URLField(unique=True, blank=True)
+    webhook_url = models.URLField(blank=True)
     position_size = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     # Bot Status
-    is_active = models.BooleanField(default=False)
-    last_trade_time = models.DateTimeField(null=True)
+    is_active = models.BooleanField(default=True)
+    last_trade_time = models.DateTimeField(null=True, auto_now_add=True)
     total_trades = models.IntegerField(default=0)
 
 
     def create_message(self):
+        if not self.bot_id:  # Ensure bot_id is set before generating the message
+            self.save()
+
         data = {"bot_id": self.bot_id,
                 "Pair": "{{syminfo.basecurrency}}/{{syminfo.currency}}",
                 "position_size": "{{strategy.position_size}}",
@@ -127,7 +132,7 @@ class TradingBot(models.Model):
                 "timestamp": "{{time}}",
                 "side": "{{strategy.order.action}}"
                 }
-        return data
+        return json.dumps(data, ensure_ascii=False)
 
     def generate_pair_key(self):
         """Generate a unique key in format xxxxx-xxxxx-xxxxx"""
@@ -140,17 +145,21 @@ class TradingBot(models.Model):
                 id = self.generate_pair_key()
                 if not TradingBot.objects.filter(bot_id=id).exists():
                     self.bot_id = id
-                    self.webhook_url = f"https://signalsbot.app/webhook/{self.bot_id}"
+                    self.webhook_url = f"https://signalsbot.app/webhook/"
                     break
         if not self.webhook_message:
             self.webhook_message = self.create_message()
+
         super().save(*args, **kwargs)
 
     def generate_webhook_url(self):
-        return f"https://signalsbot.app/webhook/{self.bot_id}"
+        return "https://signalsbot.cc/api/webhook/"
 
     def __str__(self):
-        return self.name
+        if self.name:
+            return self.name
+        else:
+            return f"{self.user.username} Bot {self.bot_id}"
 
 
 

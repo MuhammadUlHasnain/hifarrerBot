@@ -9,8 +9,16 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+from datetime import datetime
+from logging.handlers import RotatingFileHandler
+import django.utils.log
 from pathlib import Path
+import os
+import logging
+
+import pytz
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -122,6 +130,86 @@ USE_I18N = True
 
 USE_TZ = True
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://signalsbot.cc",
+    # "https://webhook-source.com",  # Replace with actual webhook sender
+]
+
+logger = logging.getLogger(__name__)
+# Set the logging level
+logger.setLevel(logging.INFO)
+# Create a file handler
+file_handler = logging.FileHandler("errors.log")
+file_handler.setLevel(logging.INFO)
+# Create a formatter and set the format
+formatter = logging.Formatter(f"{datetime.now(pytz.timezone('America/New_York'))} - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+# Add the file handler to the logger
+logger.addHandler(file_handler)
+
+LOG_DIR = os.path.join(BASE_DIR, "HifarrerBot/logs")
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'null': {
+            'level':'DEBUG',
+            'class':'logging.NullHandler',
+        },
+        'console':{
+            'level': 'DEBUG',
+            'class': "logging.StreamHandler",
+            'formatter': 'simple'
+        },
+        # I always add this handler to facilitate separating loggings
+        'log_file':{
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/django.log'),
+            'maxBytes': 10485760, # 16megabytes
+            'formatter': 'verbose'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'apps': { # I keep all my of apps under 'apps' folder, but you can also add them one by one, and this depends on how your virtualenv/paths are set
+            'handlers': ['log_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+    # you can also shortcut 'loggers' and just configure logging for EVERYTHING at once
+    'root': {
+        'handlers': ['console', 'mail_admins'],
+        'level': 'INFO'
+    },
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/

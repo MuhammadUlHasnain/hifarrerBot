@@ -1,8 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-
 import pytz
-from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -14,14 +12,15 @@ from django.contrib import messages
 from django.utils import timezone
 from django.views import View
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal
 import logging
+
+
 from .models import TradingUser, TradingBot
 from .serializers import TradingBotSerializer, TradingUserSerializer
 import json
 import ccxt
-import uuid
 
 User = get_user_model()
 # Class-based Views
@@ -30,10 +29,10 @@ logger = logging.getLogger(__name__)
 # Set the logging level
 logger.setLevel(logging.INFO)
 # Create a file handler
-file_handler = logging.FileHandler("views.log")
+file_handler = logging.FileHandler("bot.log")
 file_handler.setLevel(logging.INFO)
 # Create a formatter and set the format
-formatter = logging.Formatter(f"{datetime.now(pytz.timezone('Asia/Karachi'))} - %(levelname)s - %(message)s")
+formatter = logging.Formatter(f"{datetime.now(pytz.timezone('America/New_York'))} - %(levelname)s - %(message)s")
 file_handler.setFormatter(formatter)
 # Add the file handler to the logger
 logger.addHandler(file_handler)
@@ -48,115 +47,100 @@ def home(request):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class WebhookSignalView(View):
-    """
-    Webhook endpoint for receiving trading signals and executing trades
-    """
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
 
     def post(self, request):
         try:
             raw_data = request.body.decode('utf-8').strip('"')
             data = json.loads(raw_data)
+            logger.info(data)
             # Get the trading bot by webhook URL
-            bot = get_object_or_404(TradingBot, bot_id=data['bot_id'])
-            user = bot.user
-
-            # # Parse the incoming webhook data
-            # try:
-            #     data = json.loads(request.body)
-            #     logger.info(f"Received signal: {data}")
-            # except json.JSONDecodeError:
-            #     return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
-
-            # Validate the webhook data
-            # required_fields = ["bot_id", "side", "timestamp"]
-            # for field in required_fields:
-            #     if field not in data:
-            #         return JsonResponse(
-            #             {"status": "error", "message": f"Missing required field: {field}"},
-            #             status=400
-            #         )
-
-            # Verify the bot ID matches
-            # if data["bot_id"] != bot.generate_pair_key():
-            #     return JsonResponse(
-            #         {"status": "error", "message": "Invalid bot ID"},
-            #         status=403
-            #     )
-
-            # Check if bot is active
-            if not bot.is_active:
-                logger.info("status: Bot is not active")
-                return JsonResponse(
-                    {"status": "error", "message": "Bot is not active"},
-                    status=403
-                )
-
-            # Check user account status
-            if user.account_status != 'active':
-                logger.info(f'status: User account is {user.account_status}')
-                return JsonResponse(
-                    {"status": "error", "message": f"User account is {user.account_status}"},
-                    status=403
-                )
-
-            # Extract trading parameters
-            side = data["side"].lower()
-            if side not in ["buy", "sell"]:
-                logger.info(f'Error: {user.username} - {bot.trading_pair} Invalid side, must be buy or sell')
-                return JsonResponse(
-                    {"status": "error", "message": "Invalid side, must be 'buy' or 'sell'"},
-                    status=400
-                )
-
-            # Get trading pair
-            trading_pair = data.get("Pair", bot.trading_pair)
-            if not trading_pair:
-                logger.info(f'Error: {user.username} - {bot.trading_pair} -> No trading pair specified')
-                return JsonResponse(
-                    {"status": "error", "message": "No trading pair specified"},
-                    status=400
-                )
-
-            # Determine position size
-            position_size = None
-            if bot.use_tradingView_position_size:
-                position_size = data.get("position_size")
-                if not position_size:
-                    logger.info(f'Error: {user.username} - {bot.trading_pair} TradingView position size enabled but not provided')
-                    return JsonResponse(
-                        {"status": "error", "message": "TradingView position size enabled but not provided"},
-                        status=400
-                    )
-                try:
-                    position_size = Decimal(position_size)
-                except:
-                    logger.info(f'Error: {user.username} - {bot.trading_pair} Invalid position size format')
-                    return JsonResponse(
-                        {"status": "error", "message": "Invalid position size format"},
-                        status=400
-                    )
-            else:
-                position_size = bot.position_size
-            # Execute the trade
             try:
-                trade_result = self.execute_trade(
-                    user=user,
-                    exchange=user.preferred_exchange,
-                    side=side,
-                    trading_pair=trading_pair,
-                    position_size=position_size
-                )
+                bot = TradingBot.objects.get(bot_id=data['bot_id'])
+                user = bot.user
+                print(user)
 
-                # Update bot statistics
-                bot.last_trade_time = timezone.now()
-                bot.total_trades += 1
-                bot.save()
+                # Check if bot is active
+                if not bot.is_active:
+                    logger.info("status: Bot is not active")
+                    return JsonResponse(
+                        {"status": "error", "message": "Bot is not active"},
+                        status=403
+                    )
 
-                return JsonResponse({
-                    "status": "success",
-                    "message": f"Trade executed: {side} {position_size} of {trading_pair}",
-                    "trade_details": trade_result
-                })
+                # Check user account status
+                if user.account_status != 'active':
+                    logger.info(f'status: User account is {user.account_status}')
+                    return JsonResponse(
+                        {"status": "error", "message": f"User account is {user.account_status}"},
+                        status=403
+                    )
+
+                # Extract trading parameters
+                side = data["side"].lower()
+                if side not in ["buy", "sell"]:
+                    logger.info(f'Error: {user.username} - {bot.trading_pair} Invalid side, must be buy or sell')
+                    return JsonResponse(
+                        {"status": "error", "message": "Invalid side, must be 'buy' or 'sell'"},
+                        status=400
+                    )
+
+                # Get trading pair
+                trading_pair = data.get("Pair", bot.trading_pair)
+                if not trading_pair:
+                    logger.info(f'Error: {user.username} - {bot.trading_pair} -> No trading pair specified')
+                    return JsonResponse(
+                        {"status": "error", "message": "No trading pair specified"},
+                        status=400
+                    )
+
+                # Determine position size
+                position_size = None
+                if bot.use_tradingView_position_size:
+                    position_size = data.get("position_size")
+                    if not position_size:
+                        logger.info(f'Error: {user.username} - {bot.trading_pair} TradingView position size enabled but not provided')
+                        return JsonResponse(
+                            {"status": "error", "message": "TradingView position size enabled but not provided"},
+                            status=400
+                        )
+                    try:
+                        position_size = Decimal(position_size)
+                    except:
+                        logger.info(f'Error: {user.username} - {bot.trading_pair} Invalid position size format')
+                        return JsonResponse(
+                            {"status": "error", "message": "Invalid position size format"},
+                            status=400
+                        )
+                else:
+                    position_size = bot.position_size
+                # Execute the trade
+                try:
+                    trade_result = self.execute_trade(
+                        user=user,
+                        exchange=user.preferred_exchange,
+                        side=side,
+                        trading_pair=trading_pair,
+                        position_size=position_size
+                    )
+
+                    # Update bot statistics
+                    bot.last_trade_time = timezone.now()
+                    bot.total_trades += 1
+                    bot.save()
+
+                    return JsonResponse({
+                        "status": "success",
+                        "message": f"Trade executed: {side} {position_size} of {trading_pair}",
+                        "trade_details": trade_result
+                    })
+                except Exception as e:
+                    logger.info(f'the webhook signal could not find the user or the bot error:  {e}')
+                    logger.info(f'data of the webhook: {data}')
+                    return JsonResponse({"the webhook signal could not find the user or the bot error": f"{e}"}, status=500)
 
             except Exception as e:
                 logger.error(f"Trade execution error: {str(e)}")
@@ -173,60 +157,59 @@ class WebhookSignalView(View):
             )
 
     def execute_trade(self, user, exchange, side, trading_pair, position_size):
-        """
-        Execute trade on the specified exchange using CCXT
-        """
-        # Initialize the exchange
-        if exchange == 'coinbase':
-            if not user.coinbase_api_key or not user.coinbase_api_secret:
-                raise ValueError("Coinbase API credentials not configured")
+        try:
+            # Initialize the exchange
+            # if exchange == 'coinbase' or exchange == "('coinbase', 'Coinbase')":
+            if exchange == 'coinbase':
+                if not user.coinbase_api_key or not user.coinbase_api_secret:
+                    raise ValueError("Coinbase API credentials not configured")
+                exchange_instance = ccxt.coinbase({
+                    'apiKey': user.coinbase_api_key,
+                    'secret': user.coinbase_api_secret,
+                    'password': "",
+                })
+            elif exchange == 'binanceus':
+                raise NotImplementedError("Binance US integration not implemented yet")
+            else:
+                raise ValueError(f"{exchange} Coming Soon")
 
-            exchange_instance = ccxt.coinbase({
-                'apiKey': user.coinbase_api_key,
-                'secret': user.coinbase_api_secret,
-                'password': "",
-            })
-        elif exchange == 'binanceus':
-            # You would add binance credentials here
-            raise NotImplementedError("Binance US integration not implemented yet")
-        else:
-            raise ValueError(f"{exchange} Coming Soon")
+            # Format trading pair
+            # if '/' not in trading_pair:
+            #     trading_pair = trading_pair.replace('-', '/')
 
-        # Format the trading pair as required by the exchange
-        # CCXT typically uses format like 'BTC/USD'
-        if '/' not in trading_pair:
-            # Handle potential format issues
-            if '-' in trading_pair:
-                trading_pair = trading_pair.replace('-', '/')
+            # Load market info
+            exchange_instance.load_markets()
+            if trading_pair not in exchange_instance.markets:
+                return {"status": "error", "message": f"Trading pair {trading_pair} not available on {exchange}"}
 
-        # Load markets to ensure the trading pair is valid
-        exchange_instance.load_markets()
-        if trading_pair not in exchange_instance.markets:
-            raise ValueError(f"Trading pair {trading_pair} not available on {exchange}")
+            # Fetch balance
+            # balance = exchange_instance.fetch_balance()
+            current_price = Decimal(str(exchange_instance.fetch_ticker(trading_pair)['last']))
+            position_size = round(position_size / current_price, 5)
 
-        # Check account balance
-        balance = exchange_instance.fetch_balance()
 
-        # Execute the trade
-        if side == 'buy':
-            order = exchange_instance.create_market_buy_order(
-                symbol=trading_pair,
-                amount=position_size
-            )
-        else:  # sell
-            order = exchange_instance.create_market_sell_order(
-                symbol=trading_pair,
-                amount=position_size
-            )
+            # Execute trade
+            if side == 'buy':
+                print('going to buy')
+                order = exchange_instance.create_order(symbol=trading_pair,type='market', side='buy', amount=position_size, price=current_price)
+                print(f" buy order: {order}")
+            else:  # sell
+                order = exchange_instance.create_order(symbol=trading_pair,type='market', side='sell', amount=position_size, price=current_price)
+                print(f" sell order: {order}")
 
-        return {
-            'order_id': order['id'],
-            'status': order['status'],
-            'timestamp': order['timestamp'],
-            'amount': order['amount'],
-            'price': order.get('price'),
-            'cost': order.get('cost')
-        }
+            return {
+                'status': 'success',
+                'order_id': order['id'],
+                'timestamp': order['timestamp'],
+                'amount': order['amount'],
+                'price': order.get('price'),
+                'cost': order.get('cost')
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+
+
 def dashboard(request):
     if not request.user.is_authenticated:
         return redirect('bot:login')
@@ -258,33 +241,40 @@ def dashboard(request):
 
     return render(request, 'dashboard.html', context)
 
+@login_required
+def delete_bot(request, bot_id):
+    bot = get_object_or_404(TradingBot, id=bot_id, user=request.user)
+    bot.delete()
+    return redirect('bot:create_bot')
+
 def bot_setup(request):
     if not request.user.is_authenticated:
         return redirect('bot:login')
     try:
         bot = TradingBot.objects.get(user=request.user)
         context = {
-            'webhook_message': bot.webhook_message,
-            'webhook_url': bot.webhook_url,
-            'bot_name': bot.name if bot.name else '',
-            'trading_pair': bot.trading_pair if bot.trading_pair else '',
-            'position_size': bot.position_size if bot.position_size else '',
-            'is_active': bot.is_active if hasattr(bot, 'is_active') else True,
-            'use_tradingview': bot.use_tradingView_position_size if hasattr(bot, 'use_tradingView_position_size') else True }
+            "webhook_message": bot.webhook_message,
+            "webhook_url": bot.webhook_url,
+            "bot_id": bot.bot_id,
+            "bot_name": bot.name if bot.name else '',
+            "trading_pair": bot.trading_pair if bot.trading_pair else '',
+            "position_size": bot.position_size if bot.position_size else '',
+            "is_active": bot.is_active if hasattr(bot, 'is_active') else True,
+            "use_tradingview": bot.use_tradingView_position_size if hasattr(bot, 'use_tradingView_position_size') else True }
     except TradingBot.DoesNotExist:
         messages.error(request, 'No bot found. Please create one first.')
         return redirect('bot:create_bot')
     except TradingBot.MultipleObjectsReturned:
         # If multiple bots exist, get the first one
-        bot = TradingBot.objects.filter(user=request.user).first()
+        bot = TradingBot.objects.filter(user=request.user).last()
         context = {
-            'message': bot.webhook_message,
-            'url': bot.webhook_url,
-            'bot_name': bot.name if bot.name else '',
-            'trading_pair': bot.trading_pair if bot.trading_pair else '',
-            'position_size': bot.position_size if bot.position_size else '',
-            'is_active': bot.is_active if hasattr(bot, 'is_active') else True,
-            'use_tradingview': bot.use_tradingView_position_size if hasattr(bot, 'use_tradingView_position_size') else True
+            "message": bot.webhook_message,
+            "url": bot.webhook_url,
+            "bot_name": bot.name if bot.name else "",
+            "trading_pair": bot.trading_pair if bot.trading_pair else "",
+            "position_size": bot.position_size if bot.position_size else "",
+            "is_active": bot.is_active if hasattr(bot, 'is_active') else True,
+            "use_tradingview": bot.use_tradingView_position_size if hasattr(bot, "use_tradingView_position_size") else True
         }
 
 
@@ -336,14 +326,15 @@ def create_bot(request):
     # Check if the user already has a bot
     try:
         bot = TradingBot.objects.get(user=request.user)
+
     except TradingBot.DoesNotExist:
         # Create a new bot if one doesn't exist
         bot = TradingBot(user=request.user)
-        message = bot.create_message()
-        url = bot.generate_webhook_url()
-        bot.webhook_message = message
-        bot.webhook_url = url
         bot.save()
+    bot.webhook_message = bot.create_message()
+    bot.webhook_url = bot.generate_webhook_url()
+    bot.save()
+    print('bot created', bot.bot_id, bot.webhook_message)
 
     if request.method == 'POST':
         exchange = request.POST.get('exchange', '').strip()
@@ -388,12 +379,17 @@ def create_bot(request):
 
             # Save API credentials to the user
             user = request.user
-            if exchange == 'CB':  # Coinbase
+            if exchange == 'coinbase':  # Coinbase
                 user.coinbase_api_key = api_key
                 user.coinbase_api_secret = private_key
-            elif exchange == 'BN':  # Binance
+                print('coinbase saved')
+                user.save()
+
+            elif exchange == 'binanceus':  # Binance
                 user.binance_api_key = api_key
                 user.binance_api_secret = private_key
+                print('binance saved')
+                user.save()
 
             user.preferred_exchange = exchange
             user.save()
@@ -454,6 +450,7 @@ def check_exchange_credentials(exchange_name, api_key, secret):
                 'secret': secret,
                 'password': "",
             })
+
         elif exchange_name == "binance":
             exchange = ccxt.binance({
                 'apiKey': api_key,
@@ -464,7 +461,6 @@ def check_exchange_credentials(exchange_name, api_key, secret):
 
         # Try to fetch balance to verify credentials
         balance = exchange.fetch_balance()
-
         # If we get here, credentials are valid
         if balance:
             return {"success": 'API Validated'}
@@ -483,23 +479,6 @@ def validate_credentials(exchange_name, api_key, secret):
     # Use the same validation function as the API endpoint
     return check_exchange_credentials(exchange_name, api_key, secret)
 
-# @api_view(["GET", "POST"])
-# def test_api(request):
-#     if request.method == "POST" or request.method == "GET":
-#         bot = TradingUser.objects.filter().last()
-#         serializer = TradingUserSerializer(bot)
-#         dat = serializer.data
-#         print(dat)
-#         exchange = ccxt.coinbase({
-#             'apiKey': dat['coinbase_api_key'],
-#             'secret': dat['coinbase_api_secret'],
-#             'password': ""
-#         })
-#         data = exchange.fetch_balance()
-#         if data is not None:
-#             return JsonResponse({"success": True, "data": data})
-#         else:
-#             return JsonResponse({"success": False})
 
 def signup(request):
     if request.method == 'POST':
@@ -568,17 +547,17 @@ def signup(request):
                 first_name=name
             )
             bot = TradingBot(user=user)
-            message = bot.create_message()
-            url = bot.generate_webhook_url()
-            bot.webhook_message = message
-            bot.webhook_url = url
+            bot.save()
+            bot.webhook_message = bot.create_message()
+            bot.webhook_url = bot.generate_webhook_url()
+            bot.account_status ='active'
             bot.save()
 
             messages.success(request, 'Account created successfully! Please log in.')
             return redirect('bot:login')
 
         except IntegrityError as e:
-            messages.error(request, 'Error creating account. Try again.')
+            messages.error(request, f'Error creating account. Try again. {e}')
             return redirect('bot:signup')
 
     # If GET request, just render the signup page
@@ -617,9 +596,17 @@ def login_view(request):
                     print('redirecting to dashboard')
                     return redirect('bot:dashboard')
                 else:
-                    print(bot.name, bot.trading_pair)
+                    # bot = TradingBot(user=request.user)
+                    # # message = bot.create_message()
+                    # # print('message', message)
+                    # url = bot.generate_webhook_url()
+                    # # bot.webhook_message = message
+                    # bot.webhook_url = url
+                    # bot.save()
+                    # print('bot created at login', bot.bot_id, bot.webhook_message)
                     print('redirecting to create bot')
                     return redirect('bot:create_bot')
+
             except TradingBot.DoesNotExist:
                 return redirect("bot:create_bot")  # Redirect to create bot
         else:

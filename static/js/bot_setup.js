@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     responseElement.innerHTML = '';
                     responseElement.appendChild(errorList);
                 } else {
-                    responseElement.textContent = data.message || `Error: ${JSON.stringify(data)}` || "An error occurred. Please check your inputs.";
+                    responseElement.textContent = data.message || `Error: ${JSON.stringify(data, null, 2)}` || "An error occurred. Please check your inputs.";
                 }
             }
         })
